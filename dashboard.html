@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeQR - Dashboard</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const translations = {
+          en: {
+            title: "LifeQR - Dashboard",
+            dashboardTitle: "LifeQR Dashboard",
+            yourEmergencyQr: "Your Emergency QR",
+            qrInstructions: "Print this code and keep it in your wallet, or save it as your phone lock screen.",
+            downloadQr: "Download QR",
+            previewProfile: "Preview Public Profile",
+            scanHistory: "Scan History",
+            noScans: "No scans recorded yet.",
+            profileScanned: "Profile Scanned",
+            loadingDashboard: "Loading your dashboard...",
+            userNotFound: "User not found",
+            profileHeader: "Profile",
+            blood: "Blood",
+            personalDetails: "Personal Details",
+            age: "Age",
+            gender: "Gender",
+            emergencyContacts: "Emergency Contacts",
+            knownAllergies: "Known Allergies",
+            currentMedications: "Current Medications",
+            medicalConditions: "Medical Conditions",
+            noneRecorded: "None recorded",
+            na: "N/A"
+          },
+          ta: {
+            title: "லைஃப்க்யூஆர் - டாஷ்போர்டு",
+            dashboardTitle: "லைஃப்க்யூஆர் டாஷ்போர்டு",
+            yourEmergencyQr: "உங்கள் அவசர கால க்யூஆர்",
+            qrInstructions: "இந்தக் குறியீட்டை அச்சிட்டு உங்கள் பணப்பையில் வைக்கவும், அல்லது உங்கள் தொலைபேசியின் பூட்டுத் திரையாகச் சேமிக்கவும்.",
+            downloadQr: "க்யூஆர் பதிவிறக்கு",
+            previewProfile: "பொது சுயவிவர முன்னோட்டம்",
+            scanHistory: "ஸகேன் வரலாறு",
+            noScans: "இதுவரை ஸ்கேன்கள் எதுவும் பதிவு செய்யப்படவில்லை.",
+            profileScanned: "சுயவிவரம் ஸ்கேன் செய்யப்பட்டது",
+            loadingDashboard: "உங்கள் டாஷ்போர்டு ஏற்றப்படுகிறது...",
+            userNotFound: "பயனர் கண்டறியப்படவில்லை",
+            profileHeader: "சுயவிவரம்",
+            blood: "இரத்த வகை",
+            personalDetails: "தனிப்பட்ட விவரங்கள்",
+            age: "வயது",
+            gender: "பாலினம்",
+            emergencyContacts: "அவசர தொடர்புகள்",
+            knownAllergies: "அறியப்பட்ட ஒவ்வாமைகள் (Allergies)",
+            currentMedications: "தற்போதைய மருந்துகள்",
+            medicalConditions: "மருத்துவ நிலைகள்",
+            noneRecorded: "எதுவும் பதிவு செய்யப்படவில்லை",
+            na: "இல்லை"
+          },
+          hi: {
+            title: "लाइफ़क्यूआर - डैशबोर्ड",
+            dashboardTitle: "लाइफ़क्यूआर डैशबोर्ड",
+            yourEmergencyQr: "आपका आपातकालीन क्यूआर",
+            qrInstructions: "इस कोड को प्रिंट करके अपने वॉलेट में रखें, या अपने फ़ोन के लॉक स्क्रीन के रूप में सहेजें।",
+            downloadQr: "क्यूआर डाउनलोड करें",
+            previewProfile: "सार्वजनिक प्रोफ़ाइल का पूर्वावलोकन",
+            scanHistory: "स्कैन इतिहास",
+            noScans: "अभी तक कोई स्कैन दर्ज नहीं किया गया है।",
+            profileScanned: "प्रोफ़ाइल स्कैन की गई",
+            loadingDashboard: "आपका डैशबोर्ड लोड हो रहा है...",
+            userNotFound: "उपयोगकर्ता नहीं मिला",
+            profileHeader: "प्रोफ़ाइल",
+            blood: "रक्त",
+            personalDetails: "व्यक्तिगत विवरण",
+            age: "आयु",
+            gender: "लिंग",
+            emergencyContacts: "आपातकालीन संपर्क",
+            knownAllergies: "ज्ञात एलर्जी",
+            currentMedications: "वर्तमान दवाएं",
+            medicalConditions: "चिकित्सा स्थितियां",
+            noneRecorded: "कोई दर्ज नहीं",
+            na: "लागू नहीं"
+          }
+        };
+
+        function Dashboard() {
+            const [lang, setLang] = useState(localStorage.getItem('preferredLang') || 'en');
+            const [user, setUser] = useState(null);
+            const [history, setHistory] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            // Get ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('id');
+
+            const t = (key) => {
+                return translations[lang]?.[key] || translations['en']?.[key] || key;
+            };
+
+            useEffect(() => {
+                document.title = t('title');
+            }, [lang]);
+
+            const handleLangChange = (newLang) => {
+                setLang(newLang);
+                localStorage.setItem('preferredLang', newLang);
+            };
+
+            useEffect(() => {
+                if (!userId) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                const fetchData = async () => {
+                    try {
+                        const [userRes, historyRes] = await Promise.all([
+                            fetch(`/api/users/${userId}`),
+                            fetch(`/api/users/${userId}/history`)
+                        ]);
+                        
+                        if (userRes.ok) setUser(await userRes.json());
+                        if (historyRes.ok) setHistory(await historyRes.json());
+                    } catch (err) {
+                        console.error(err);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                fetchData();
+            }, [userId]);
+
+            if (loading) return <div className="flex justify-center items-center h-screen text-xl">{t('loadingDashboard')}</div>;
+            if (!user) return <div className="flex justify-center items-center h-screen text-xl text-red-500">{t('userNotFound')}</div>;
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <nav className="bg-white dark:bg-slate-800 shadow-sm p-4">
+                        <div className="max-w-6xl mx-auto flex justify-between items-center">
+                            <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                                {t('dashboardTitle')}
+                            </h1>
+                            <div className="flex items-center gap-4">
+                                <select 
+                                    value={lang} 
+                                    onChange={(e) => handleLangChange(e.target.value)} 
+                                    className="p-1.5 border rounded-lg bg-slate-50 dark:bg-slate-700 text-sm focus:ring-2 focus:ring-red-500 outline-none cursor-pointer text-slate-850 dark:text-slate-100"
+                                >
+                                    <option value="en">English</option>
+                                    <option value="ta">தமிழ் (Tamil)</option>
+                                    <option value="hi">हिन्दी (Hindi)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <main className="flex-grow max-w-6xl mx-auto w-full p-4 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* QR Code Section */}
+                        <div className="md:col-span-1 space-y-6">
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg flex flex-col items-center text-center">
+                                <h3 className="text-xl font-semibold mb-4">{t('yourEmergencyQr')}</h3>
+                                <div className="bg-white p-4 rounded-xl shadow-inner mb-4 border-4 border-red-500">
+                                    <img src={`/api/users/${userId}/qr`} alt="Emergency QR Code" className="w-48 h-48" />
+                                </div>
+                                <p className="text-sm text-slate-500 mb-4">{t('qrInstructions')}</p>
+                                <a href={`/api/users/${userId}/qr`} download="LifeQR_Code.png" className="w-full bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white font-semibold py-2 rounded-lg flex items-center justify-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                                    {t('downloadQr')}
+                                </a>
+                                <a href={`profile.html?id=${userId}`} target="_blank" className="w-full mt-2 text-red-600 hover:underline font-semibold py-2">
+                                    {t('previewProfile')}
+                                </a>
+                            </div>
+
+                            {/* Scan History */}
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg">
+                                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    {t('scanHistory')}
+                                </h3>
+                                {history.length === 0 ? (
+                                    <p className="text-sm text-slate-500 italic">{t('noScans')}</p>
+                                ) : (
+                                    <ul className="space-y-3 max-h-60 overflow-y-auto">
+                                        {history.map((h, i) => (
+                                            <li key={i} className="text-sm p-3 bg-slate-50 dark:bg-slate-700 rounded-lg flex justify-between">
+                                                <span>{t('profileScanned')}</span>
+                                                <span className="text-slate-500 font-mono text-xs">{new Date(h.scanned_at).toLocaleString()}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Personal Info Section */}
+                        <div className="md:col-span-2 space-y-6">
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg">
+                                <div className="flex justify-between items-center mb-6 border-b pb-4 dark:border-slate-700">
+                                    <h2 className="text-2xl font-bold">{user.full_name} {t('profileHeader')}</h2>
+                                    <span className="bg-red-100 text-red-800 text-sm font-bold px-3 py-1 rounded-full dark:bg-red-900 dark:text-red-200 border border-red-200 dark:border-red-800">
+                                        {t('blood')}: {user.blood_group}
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                        <h4 className="text-sm text-slate-500 uppercase tracking-wider mb-1">{t('personalDetails')}</h4>
+                                        <p><strong>{t('age')}:</strong> {user.age || t('na')}</p>
+                                        <p><strong>{t('gender')}:</strong> {user.gender}</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm text-slate-500 uppercase tracking-wider mb-1">{t('emergencyContacts')}</h4>
+                                        <p className="font-semibold text-red-600 dark:text-red-400">{user.emergency_contact_1}</p>
+                                        {user.emergency_contact_2 && <p>{user.emergency_contact_2}</p>}
+                                    </div>
+                                    <div className="sm:col-span-2">
+                                        <h4 className="text-sm text-slate-500 uppercase tracking-wider mb-1">{t('knownAllergies')}</h4>
+                                        <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 rounded-lg border border-red-100 dark:border-red-900/50">
+                                            {user.allergies || t('noneRecorded')}
+                                        </div>
+                                    </div>
+                                    <div className="sm:col-span-2">
+                                        <h4 className="text-sm text-slate-500 uppercase tracking-wider mb-1">{t('currentMedications')}</h4>
+                                        <div className="p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                                            {user.medications || t('noneRecorded')}
+                                        </div>
+                                    </div>
+                                    <div className="sm:col-span-2">
+                                        <h4 className="text-sm text-slate-500 uppercase tracking-wider mb-1">{t('medicalConditions')}</h4>
+                                        <div className="p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                                            {user.medical_conditions || t('noneRecorded')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<Dashboard />);
+    </script>
+</body>
+</html>

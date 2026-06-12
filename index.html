@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeQR - Emergency Medical Profile</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const translations = {
+          en: {
+            title: "LifeQR - Emergency Medical Profile",
+            header: "Create Your Medical Profile",
+            subtitle: "Ensure first responders have the info they need, exactly when they need it.",
+            fullName: "Full Name",
+            age: "Age",
+            bloodGroup: "Blood Group",
+            emergencyContact1: "Emergency Contact 1",
+            emergencyContact2: "Emergency Contact 2",
+            allergies: "Known Allergies",
+            medications: "Current Medications",
+            conditions: "Existing Medical Conditions",
+            registerBtn: "Register & Generate QR",
+            generatingBtn: "Generating QR Code...",
+            placeholderName: "John Doe",
+            placeholderAge: "30",
+            placeholderContact: "+1 234 567 8900",
+            placeholderOptional: "Optional",
+            placeholderAllergies: "Penicillin, Peanuts, etc.",
+            placeholderMedications: "Insulin, Lisinopril, etc.",
+            placeholderConditions: "Diabetes, Hypertension, etc.",
+            systemTitle: "Emergency Profile System"
+          },
+          ta: {
+            title: "லைஃப்க்யூஆர் - அவசர மருத்துவ சுயவிவரம்",
+            header: "உங்கள் மருத்துவ சுயவிவரத்தை உருவாக்கவும்",
+            subtitle: "முதலுதவி புரிபவர்களுக்குத் தேவையான தகவல்கள் சரியான நேரத்தில் கிடைப்பதை உறுதிசெய்யுங்கள்.",
+            fullName: "முழு பெயர்",
+            age: "வயது",
+            bloodGroup: "இரத்த வகை",
+            emergencyContact1: "அவசர தொடர்பு எண் 1",
+            emergencyContact2: "அவசர தொடர்பு எண் 2",
+            allergies: "அறியப்பட்ட ஒவ்வாமைகள் (Allergies)",
+            medications: "தற்போதைய மருந்துகள்",
+            conditions: "தற்போதைய மருத்துவ நிலைகள்",
+            registerBtn: "பதிவுசெய்து க்யூஆர் குறியீட்டை உருவாக்கவும்",
+            generatingBtn: "க்யூஆர் குறியீடு உருவாக்கப்படுகிறது...",
+            placeholderName: "ஜான் டோ",
+            placeholderAge: "30",
+            placeholderContact: "+91 98765 43210",
+            placeholderOptional: "விருப்பத்திற்குரியது",
+            placeholderAllergies: "பென்சிலின், வேர்க்கடலை ஒவ்வாமை போன்றவை.",
+            placeholderMedications: "இன்சுலின், மாத்திரைகள் போன்றவை.",
+            placeholderConditions: "நீरीழிவு நோய், ரத்த அழுத்தம் போன்றவை.",
+            systemTitle: "அவசர சுயவிவர அமைப்பு"
+          },
+          hi: {
+            title: "लाइफ़क्यूआर - आपातकालीन चिकित्सा प्रोफ़ाइल",
+            header: "अपनी चिकित्सा प्रोफ़ाइल बनाएं",
+            subtitle: "सुनिश्चित करें कि प्रथम प्रतिक्रियाकर्ताओं के पास वह जानकारी हो जिसकी उन्हें आवश्यकता है, ठीक उसी समय जब उन्हें इसकी आवश्यकता हो।",
+            fullName: "पूरा नाम",
+            age: "आयु",
+            bloodGroup: "रक्त समूह",
+            emergencyContact1: "आपातकालीन संपर्क 1",
+            emergencyContact2: "आपातकालीन संपर्क 2",
+            allergies: "ज्ञात एलर्जी",
+            medications: "वर्तमान दवाएं",
+            conditions: "मौजूदा चिकित्सा स्थितियां",
+            registerBtn: "पंजीकरण करें और क्यूआर बनाएं",
+            generatingBtn: "क्यूआर कोड बनाया जा रहा है...",
+            placeholderName: "राहुल कुमार",
+            placeholderAge: "30",
+            placeholderContact: "+91 98765 43210",
+            placeholderOptional: "वैकल्पिक",
+            placeholderAllergies: "पेनिसिलिन, मूंगफली, आदि।",
+            placeholderMedications: "इंसुलिन, लिसिनोप्रिल, आदि।",
+            placeholderConditions: "मधुमेह, उच्च रक्तचाप, आदि।",
+            systemTitle: "आपातकालीन प्रोफ़ाइल प्रणाली"
+          }
+        };
+
+        function App() {
+            const [lang, setLang] = useState(localStorage.getItem('preferredLang') || 'en');
+            const [formData, setFormData] = useState({
+                full_name: '',
+                age: '',
+                gender: 'Prefer not to say',
+                blood_group: 'A+',
+                address: '',
+                emergency_contact_1: '',
+                emergency_contact_2: '',
+                doctor_name: '',
+                doctor_phone: '',
+                allergies: '',
+                medications: '',
+                medical_conditions: '',
+                notes: ''
+            });
+
+            const [loading, setLoading] = useState(false);
+
+            const t = (key) => {
+                return translations[lang]?.[key] || translations['en']?.[key] || key;
+            };
+
+            useEffect(() => {
+                document.title = t('title');
+            }, [lang]);
+
+            const handleLangChange = (newLang) => {
+                setLang(newLang);
+                localStorage.setItem('preferredLang', newLang);
+            };
+
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({ ...prev, [name]: value }));
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                try {
+                    const response = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ...formData,
+                            age: parseInt(formData.age) || 0
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.id) {
+                        window.location.href = `dashboard.html?id=${data.id}`;
+                    } else {
+                        alert("Error registering user.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Failed to connect to backend. Make sure it's running.");
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <nav className="bg-white dark:bg-slate-800 shadow-sm p-4">
+                        <div className="max-w-6xl mx-auto flex justify-between items-center">
+                            <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                                LifeQR
+                            </h1>
+                            <div className="flex items-center gap-4">
+                                <div className="text-sm font-semibold hidden sm:inline">{t('systemTitle')}</div>
+                                <select 
+                                    value={lang} 
+                                    onChange={(e) => handleLangChange(e.target.value)} 
+                                    className="p-1.5 border rounded-lg bg-slate-50 dark:bg-slate-700 text-sm focus:ring-2 focus:ring-red-500 outline-none cursor-pointer text-slate-850 dark:text-slate-100"
+                                >
+                                    <option value="en">English</option>
+                                    <option value="ta">தமிழ் (Tamil)</option>
+                                    <option value="hi">हिन्दी (Hindi)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <main className="flex-grow max-w-4xl mx-auto w-full p-4 sm:p-8">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                            <div className="bg-red-500 p-8 text-white text-center">
+                                <h2 className="text-3xl font-bold mb-2">{t('header')}</h2>
+                                <p className="text-red-100">{t('subtitle')}</p>
+                            </div>
+                            
+                            <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">{t('fullName')} *</label>
+                                        <input required name="full_name" onChange={handleChange} className="w-full p-3 border rounded-lg dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-red-500 outline-none transition" placeholder={t('placeholderName')} />
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="flex-1">
+                                            <label className="block text-sm font-medium mb-1">{t('age')}</label>
+                                            <input type="number" name="age" onChange={handleChange} className="w-full p-3 border rounded-lg dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-red-500 outline-none transition" placeholder={t('placeholderAge')} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-sm font-medium mb-1">{t('bloodGroup')} *</label>
+                                            <select required name="blood_group" onChange={handleChange} className="w-full p-3 border rounded-lg dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-red-500 outline-none transition">
+                                                {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => <option key={bg} value={bg}>{bg}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">{t('emergencyContact1')} *</label>
+                                        <input required name="emergency_contact_1" onChange={handleChange} className="w-full p-3 border rounded-lg dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-red-500 outline-none transition" placeholder={t('placeholderContact')} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">{t('emergencyContact2')}</label>
+                                        <input name="emergency_contact_2" onChange={handleChange} className="w-full p-3 border rounded-lg dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-red-500 outline-none transition" placeholder={t('placeholderOptional')} />
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium mb-1">{t('allergies')}</label>
+                                        <textarea name="allergies" onChange={handleChange} rows="2" className="w-full p-3 border rounded-lg dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-red-500 outline-none transition" placeholder={t('placeholderAllergies')}></textarea>
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium mb-1">{t('medications')}</label>
+                                        <textarea name="medications" onChange={handleChange} rows="2" className="w-full p-3 border rounded-lg dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-red-500 outline-none transition" placeholder={t('placeholderMedications')}></textarea>
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium mb-1">{t('conditions')}</label>
+                                        <textarea name="medical_conditions" onChange={handleChange} rows="2" className="w-full p-3 border rounded-lg dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-red-500 outline-none transition" placeholder={t('placeholderConditions')}></textarea>
+                                    </div>
+                                </div>
+
+                                <button type="submit" disabled={loading} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg transform transition active:scale-95 disabled:opacity-50">
+                                    {loading ? t('generatingBtn') : t('registerBtn')}
+                                </button>
+                            </form>
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

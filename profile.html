@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Medical Profile - LifeQR</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .emergency-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+    </style>
+</head>
+<body class="bg-red-50 text-slate-900 min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const translations = {
+          en: {
+            title: "Emergency Medical Profile - LifeQR",
+            loadingEmergency: "LOADING EMERGENCY DATA...",
+            profileNotFound: "Profile Not Found",
+            profileNotFoundDesc: "The scanned QR code is invalid or the medical profile no longer exists.",
+            emergencyProfileHeader: "Emergency Medical Profile",
+            medicalInfo: "Medical Information",
+            primaryContact: "Primary Contact",
+            secondaryContact: "Secondary Contact",
+            primaryPhysician: "Primary Physician",
+            callDr: "Call Dr.",
+            providedBy: "Provided by LifeQR Secure Emergency System",
+            age: "Age",
+            gender: "Gender",
+            allergies: "Allergies",
+            existingConditions: "Existing Conditions",
+            currentMedications: "Current Medications",
+            emergencyContacts: "Emergency Contacts",
+            nameNotProvided: "Name not provided",
+            noneReported: "None reported",
+            na: "N/A"
+          },
+          ta: {
+            title: "அவசர மருத்துவ சுயவிவரம் - லைஃப்க்யூஆர்",
+            loadingEmergency: "அவசர கால தரவு ஏற்றப்படுகிறது...",
+            profileNotFound: "சுயவிவரம் கண்டறியப்படவில்லை",
+            profileNotFoundDesc: "ஸ்கேன் செய்யப்பட்ட க்யூஆர் குறியீடு தவறானது அல்லது மருத்துவ சுயவிவரம் இப்போது இல்லை.",
+            emergencyProfileHeader: "அவசர மருத்துவ சுயவிவரம்",
+            medicalInfo: "மருத்துவ தகவல்",
+            primaryContact: "முதன்மை தொடர்பு",
+            secondaryContact: "இரண்டாம் நிலை தொடர்பு",
+            primaryPhysician: "முதன்மை மருத்துவர்",
+            callDr: "மருத்துவரை அழைக்கவும்",
+            providedBy: "லைஃப்க்யூஆர் பாதுகாப்பான அவசர முறையின் மூலம் வழங்கப்படுகிறது",
+            age: "வயது",
+            gender: "பாலினம்",
+            allergies: "ஒவ்வாமைகள் (Allergies)",
+            existingConditions: "தற்போதைய மருத்துவ நிலைகள்",
+            currentMedications: "தற்போதைய மருந்துகள்",
+            emergencyContacts: "அவசர தொடர்புகள்",
+            nameNotProvided: "பெயர் வழங்கப்படவில்லை",
+            noneReported: "எதுவும் பதிவு செய்யப்படவில்லை",
+            na: "இல்லை"
+          },
+          hi: {
+            title: "आपातकालीन चिकित्सा प्रोफ़ाइल - लाइफ़क्यूआर",
+            loadingEmergency: "आपातकालीन डेटा लोड हो रहा है...",
+            profileNotFound: "प्रोफ़ाइल नहीं मिली",
+            profileNotFoundDesc: "स्कैन किया गया क्यूआर कोड अमान्य है या चिकित्सा प्रोफ़ाइल अब मौजूद नहीं है।",
+            emergencyProfileHeader: "आपातकालीन चिकित्सा प्रोफ़ाइल",
+            medicalInfo: "चिकित्सा संबंधी जानकारी",
+            primaryContact: "प्राथमिक संपर्क",
+            secondaryContact: "द्वितीयक संपर्क",
+            primaryPhysician: "प्राथमिक चिकित्सक (डॉक्टर)",
+            callDr: "डॉक्टर को कॉल करें",
+            providedBy: "लाइफ़क्यूआर सुरक्षित आपातकालीन प्रणाली द्वारा प्रदान किया गया",
+            age: "आयु",
+            gender: "लिंग",
+            allergies: "एलर्जी",
+            existingConditions: "मौजूदा चिकित्सा स्थितियां",
+            currentMedications: "वर्तमान दवाएं",
+            emergencyContacts: "आपातकालीन संपर्क",
+            nameNotProvided: "नाम नहीं दिया गया",
+            noneReported: "कोई दर्ज नहीं",
+            na: "लागू नहीं"
+          }
+        };
+
+        function EmergencyProfile() {
+            const [lang, setLang] = useState(localStorage.getItem('preferredLang') || 'en');
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            // Get ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('id');
+
+            const t = (key) => {
+                return translations[lang]?.[key] || translations['en']?.[key] || key;
+            };
+
+            useEffect(() => {
+                document.title = t('title');
+            }, [lang]);
+
+            const handleLangChange = (newLang) => {
+                setLang(newLang);
+                localStorage.setItem('preferredLang', newLang);
+            };
+
+            useEffect(() => {
+                if (!userId) {
+                    setLoading(false);
+                    return;
+                }
+                
+                // Fetch data. This also triggers the history log on the backend
+                fetch(`/api/users/${userId}`)
+                    .then(res => res.ok ? res.json() : null)
+                    .then(data => {
+                        setUser(data);
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        setLoading(false);
+                    });
+            }, [userId]);
+
+            if (loading) return (
+                <div className="flex flex-col justify-center items-center h-screen bg-red-600 text-white">
+                    <svg className="animate-spin h-12 w-12 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <div className="text-xl font-bold tracking-widest">{t('loadingEmergency')}</div>
+                </div>
+            );
+            
+            if (!user) return (
+                <div className="flex flex-col justify-center items-center h-screen bg-slate-900 text-white text-center p-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 text-red-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    <h1 className="text-3xl font-bold mb-2">{t('profileNotFound')}</h1>
+                    <p className="text-slate-400">{t('profileNotFoundDesc')}</p>
+                </div>
+            );
+
+            return (
+                <div className="max-w-2xl mx-auto w-full pb-12">
+                    {/* Language Toggler at the top */}
+                    <div className="flex justify-end p-4">
+                        <select 
+                            value={lang} 
+                            onChange={(e) => handleLangChange(e.target.value)} 
+                            className="p-1.5 border border-red-200 dark:border-slate-700 rounded-lg bg-white text-sm focus:ring-2 focus:ring-red-500 outline-none cursor-pointer text-slate-800"
+                        >
+                            <option value="en">English</option>
+                            <option value="ta">தமிழ் (Tamil)</option>
+                            <option value="hi">हिन्दी (Hindi)</option>
+                        </select>
+                    </div>
+
+                    {/* Header Banner */}
+                    <div className="bg-red-600 text-white p-6 rounded-b-3xl shadow-xl mb-6 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-20">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="currentColor"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                        </div>
+                        <h1 className="text-xs uppercase tracking-widest font-bold opacity-80 mb-1">{t('emergencyProfileHeader')}</h1>
+                        <h2 className="text-4xl font-black mb-4">{user.full_name}</h2>
+                        
+                        <div className="flex gap-4 mb-2">
+                            <div className="bg-white text-red-600 px-4 py-2 rounded-xl font-bold text-2xl shadow-inner border-2 border-red-200 emergency-pulse">
+                                {user.blood_group}
+                            </div>
+                            <div className="bg-red-700 bg-opacity-50 px-4 py-2 rounded-xl border border-red-500 flex flex-col justify-center">
+                                <span className="text-xs uppercase opacity-80">{t('age')}</span>
+                                <span className="font-bold text-lg">{user.age || t('na')}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="px-4 space-y-6">
+                        
+                        {/* Critical Alerts */}
+                        {user.allergies && (
+                            <div className="bg-white border-l-8 border-red-600 p-5 rounded-r-xl shadow-md">
+                                <h3 className="text-red-600 font-bold uppercase tracking-wider flex items-center gap-2 mb-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                    {t('allergies')}
+                                </h3>
+                                <p className="text-xl font-bold text-slate-800">{user.allergies}</p>
+                            </div>
+                        )}
+
+                        {/* Medical Conditions */}
+                        <div className="bg-white p-5 rounded-xl shadow-md">
+                            <h3 className="text-slate-500 font-bold uppercase tracking-wider text-sm mb-3">{t('medicalInfo')}</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <span className="block text-xs text-slate-400 uppercase font-bold">{t('existingConditions')}</span>
+                                    <p className="font-semibold text-slate-800">{user.medical_conditions || t('noneReported')}</p>
+                                </div>
+                                <div>
+                                    <span className="block text-xs text-slate-400 uppercase font-bold">{t('currentMedications')}</span>
+                                    <p className="font-semibold text-slate-800">{user.medications || t('noneReported')}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Emergency Contacts */}
+                        <div className="bg-white p-5 rounded-xl shadow-md border-t-4 border-slate-800">
+                            <h3 className="text-slate-800 font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                {t('emergencyContacts')}
+                            </h3>
+                            
+                            <div className="space-y-3">
+                                <a href={`tel:${user.emergency_contact_1}`} className="flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 rounded-xl active:scale-95 transition">
+                                    <div>
+                                        <span className="block text-xs text-slate-500 font-bold uppercase">{t('primaryContact')}</span>
+                                        <span className="text-lg font-bold text-slate-900">{user.emergency_contact_1}</span>
+                                    </div>
+                                    <div className="bg-green-500 text-white p-3 rounded-full shadow-md">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                    </div>
+                                </a>
+
+                                {user.emergency_contact_2 && (
+                                    <a href={`tel:${user.emergency_contact_2}`} className="flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 rounded-xl active:scale-95 transition">
+                                        <div>
+                                            <span className="block text-xs text-slate-500 font-bold uppercase">{t('secondaryContact')}</span>
+                                            <span className="text-lg font-bold text-slate-900">{user.emergency_contact_2}</span>
+                                        </div>
+                                        <div className="bg-green-500 text-white p-3 rounded-full shadow-md">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                        </div>
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Doctor Info */}
+                        {(user.doctor_name || user.doctor_phone) && (
+                            <div className="bg-white p-5 rounded-xl shadow-md">
+                                <h3 className="text-slate-500 font-bold uppercase tracking-wider text-sm mb-3">{t('primaryPhysician')}</h3>
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <p className="font-semibold text-slate-800">{user.doctor_name || t('nameNotProvided')}</p>
+                                        {user.doctor_phone && <p className="text-sm text-slate-500">{user.doctor_phone}</p>}
+                                    </div>
+                                    {user.doctor_phone && (
+                                        <a href={`tel:${user.doctor_phone}`} className="text-blue-600 bg-blue-50 p-2 rounded-lg font-bold text-sm">{t('callDr')}</a>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className="text-center text-xs text-slate-400 mt-8">
+                            {t('providedBy')}
+                        </div>
+
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<EmergencyProfile />);
+    </script>
+</body>
+</html>
