@@ -12,13 +12,16 @@ from io import BytesIO
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import StreamingResponse, RedirectResponse
-import os 
 
-# Database Setup
-DATABASE_URL = "sqlite:///./lifeqr.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+import os
+
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./lifeqr.db")
+
+# Fix postgres:// → postgresql:// if needed
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+engine = create_engine(DATABASE_URL, connect_args={} if DATABASE_URL.startswith("postgresql") else {"check_same_thread": False})
 
 class DBUser(Base):
     __tablename__ = "users"

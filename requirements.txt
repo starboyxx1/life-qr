@@ -1,5 +1,7 @@
-flask
-gunicorn
-qrcode
-pillow
+fastapi
+uvicorn
 sqlalchemy
+psycopg2-binary
+qrcode[pil]
+python-multipart
+pydantic
