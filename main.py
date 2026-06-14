@@ -11,6 +11,8 @@ import qrcode
 from io import BytesIO
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import StreamingResponse, RedirectResponse
+import os 
 
 # Database Setup
 DATABASE_URL = "sqlite:///./lifeqr.db"
@@ -53,11 +55,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve frontend files
-import os
-frontend_dir = os.path.join(os.path.dirname(__file__), "frontend")
-# frontend_dir = os.path.join(os.path.dirname(__file__), "../frontend")
-app.mount("/app", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+
 
 def get_db():
     db = SessionLocal()
@@ -125,6 +123,15 @@ def generate_qr(user_id: str, request: Request):
 def get_scan_history(user_id: str, db: Session = Depends(get_db)):
     history = db.query(DBScanHistory).filter(DBScanHistory.user_id == user_id).order_by(DBScanHistory.scanned_at.desc()).all()
     return [{"scanned_at": h.scanned_at} for h in history]
+
+@app.get("/")
+def root():
+    return RedirectResponse(url="/app/index.html")
+
+# Serve frontend files
+frontend_dir = os.path.join(os.path.dirname(__file__), "frontend")
+# frontend_dir = os.path.join(os.path.dirname(__file__), "../frontend")
+app.mount("/app", StaticFiles(directory=frontend_dir, html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
